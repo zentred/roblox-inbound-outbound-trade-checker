@@ -1,12 +1,15 @@
-import requests, colorama, ctypes, threading, re, json, time
+import requests, colorama, ctypes, threading, re, json, time, os
 from threading import Thread
 from colorama import init
 from colorama import Fore
 req = requests.Session()
 init()
+os.system('cls')
 
 cookie = input('Enter cookie: ')
 req.cookies['.ROBLOSECURITY'] = cookie
+
+blacklisted = ['3074209945', '165151403', '2612913615', '22065878', '2970489134', '1524991831', '3014113406', '2285864540', '3043327928', '3043212251', '544996667', '2751924344', '2840989067', '337288008', '378170', '1211044096', '2315748482', '311647', '1558364091', '2482990705', '3031103232', '1211044096', '2782679366', '2712404484', '85586293', '1706276084']
 
 trades = 0
 good = 0
@@ -14,7 +17,7 @@ bad = 0
 
 def title():
     while True:
-        ctypes.windll.kernel32.SetConsoleTitleW(f'Trades Inbound: {trades} - Good Trades: {good} - Declined Trades: {bad}')
+        ctypes.windll.kernel32.SetConsoleTitleW(f'Trades Inbound: {trades} | Good Trades: {good} | Declined Trades: {bad}')
 
 def rolimons():
     ids = []
@@ -58,7 +61,7 @@ def scrape_trades():
                     print(f'{Fore.LIGHTGREEN_EX}[+] Finished Scraping - {len(tradeids)} Trades Found')
                     return tradeids
             elif 'TooManyRequests' in str(r):
-                print(f'{Fore.LIGHTYELLOW_EX}[-] Ratelimited - Waiting 1 minute')
+                print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
                 time.sleep(60)
                 continue
         except Exception as err:
@@ -66,7 +69,7 @@ def scrape_trades():
             continue
 
 def check(inbounds):
-    global good, bad
+    global good, bad, blacklisted
     for trade in inbounds:
         try:
             me = 0
@@ -75,6 +78,7 @@ def check(inbounds):
             while True:
                 r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
                 if 'userAssets' in str(r):
+                    uaid = str(r['offers'][1]['user']['id'])
                     for i in range(len(r['offers'][0]['userAssets'])):
                         id = str(r['offers'][0]['userAssets'][i]['assetId'])
                         current, name, proj = values[id].split('/',3)
@@ -87,7 +91,7 @@ def check(inbounds):
                             projected = True
                         elif proj == None:
                             projected = False
-                    if me >= them or projected == True:
+                    if me >= them or projected == True or uaid in blacklisted:
                         while True:
                             r = req.post('https://auth.roblox.com/v1/logout')
                             csrf = r.headers['X-CSRF-TOKEN']
@@ -96,26 +100,26 @@ def check(inbounds):
                                 }
                             a = req.post(f'https://trades.roblox.com/v1/trades/{trade}/decline', headers=headers).text
                             if a == '{}':
-                                print(f'{Fore.RED}[X] Trade Declined - {me} for {them}')
+                                print(f'{Fore.WHITE}[{Fore.RED}x{Fore.WHITE}] {Fore.RED}Trade Declined {Fore.WHITE}- {Fore.RED}{me} {Fore.WHITE}for {Fore.RED}{them}')
                                 bad += 1
                                 break
                             elif 'Declined' in a:
                                 break
                             else:
-                                print(f'{Fore.LIGHTYELLOW_EX}[-] Ratelimited - Waiting 1 minute')
+                                print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
                                 time.sleep(60)
                                 continue
                         break
-                    elif them > me and projected == False:
+                    elif them > me and projected == False and not uaid in blacklisted:
                         good += 1
-                        print(f'{Fore.LIGHTGREEN_EX}[+] Good Trade Found - {trade} - {me} for {them}')
+                        print(f'{Fore.WHITE}[{Fore.LIGHTGREEN_EX}+{Fore.WHITE}] {Fore.LIGHTGREEN_EX}Good Trade Found {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{trade} {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{me} {Fore.WHITE}for {Fore.LIGHTGREEN_EX}{them}')
                         break
                 else:
-                    print(f'{Fore.LIGHTYELLOW_EX}[-] Ratelimited - Waiting 1 minute')
+                    print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
                     time.sleep(60)
                     continue
             else:
-                print(f'{Fore.LIGHTYELLOW_EX}[-] Ratelimited - Waiting 1 minute')
+                print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
                 time.sleep(60)
                 continue
         except Exception as err:
