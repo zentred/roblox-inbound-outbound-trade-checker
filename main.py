@@ -98,7 +98,7 @@ def check(inbounds):
                             decline = True
                         if keep_giving_projected == False:
                             if str(proj) == '1':
-                                decline = True
+                                me_proj = True
 
                     for i in range(len(r['offers'][1]['userAssets'])):
                         id = str(r['offers'][1]['userAssets'][i]['assetId'])
@@ -108,7 +108,7 @@ def check(inbounds):
                             decline = True
                         if decline_projected == True:
                             if str(proj) == '1':
-                                me_proj = True
+                                decline = True
 
                     if use_minimum == True:
                         if len(r['offers'][1]['userAssets']) > their_minimum:
@@ -117,8 +117,11 @@ def check(inbounds):
                             decline = True
                     if uaid in blacklisted_traders:
                         decline = True
-                    if decline_projected == True:
+                    if keep_giving_projected == True:
                         if me >= them and me_proj == False:
+                            decline = True
+                    elif keep_giving_projected == False:
+                        if me >= them:
                             decline = True
 
                     if decline == True:
