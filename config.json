@@ -1,5 +1,6 @@
 {
   "cookie": "put cookie here",
+  "trade_type": "outbound",
   "use_minimum_items": false,
   "minimum_items_my_side": 4,
   "minimum_items_their_side": 4,
