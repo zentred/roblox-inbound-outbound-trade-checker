@@ -1,4 +1,4 @@
-import requests, colorama, ctypes, threading, re, json, time, os
+import requests, colorama, ctypes, threading, re, json, time, os, json
 from threading import Thread
 from colorama import init
 from colorama import Fore
@@ -6,10 +6,19 @@ req = requests.Session()
 init()
 os.system('cls')
 
-cookie = 'cookie' # put your cookie here 
-req.cookies['.ROBLOSECURITY'] = cookie
+with open("config.json", "r") as config:
+    config = json.load(config)
 
-blacklisted = ['3074209945', '165151403', '2612913615', '22065878', '2970489134', '1524991831', '3014113406', '2285864540', '3043327928', '3043212251', '544996667', '2751924344', '2840989067', '337288008', '378170', '1211044096', '2315748482', '311647', '1558364091', '2482990705', '3031103232', '1211044096', '2782679366', '2712404484', '85586293', '1706276084']
+cookie = config['cookie']
+use_minimum = config['use_minimum_items']
+my_minimum = config['minimum_items_my_side']
+their_minimum = config['minimum_items_their_side']
+decline_projected = config['decline_receive_projected']
+keep_giving_projected = config['keep_giving_projected']
+blacklisted_traders = config['blacklisted_traders']
+blacklisted_giving = config['blacklisted_giving']
+blacklisted_receiving = config['blacklisted_receiving']
+req.cookies['.ROBLOSECURITY'] = cookie
 
 trades = 0
 good = 0
@@ -74,24 +83,45 @@ def check(inbounds):
         try:
             me = 0
             them = 0
-            projected = False
+            decline = False
+            me_proj = False
             while True:
                 r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
                 if 'userAssets' in str(r):
                     uaid = str(r['offers'][1]['user']['id'])
+
                     for i in range(len(r['offers'][0]['userAssets'])):
                         id = str(r['offers'][0]['userAssets'][i]['assetId'])
                         current, name, proj = values[id].split('/',3)
                         me += int(current)
+                        if id in blacklisted_giving:
+                            decline = True
+                        if keep_giving_projected == False:
+                            if str(proj) == '1':
+                                decline = True
+
                     for i in range(len(r['offers'][1]['userAssets'])):
                         id = str(r['offers'][1]['userAssets'][i]['assetId'])
                         current, name, proj = values[id].split('/',3)
                         them += int(current)
-                        if proj == 1 or proj == '1':
-                            projected = True
-                        elif proj == None:
-                            projected = False
-                    if me >= them or projected == True or uaid in blacklisted:
+                        if id in blacklisted_receiving:
+                            decline = True
+                        if decline_projected == True:
+                            if str(proj) == '1':
+                                me_proj = True
+
+                    if use_minimum == True:
+                        if len(r['offers'][1]['userAssets']) > their_minimum:
+                            decline = True
+                        if len(r['offers'][0]['userAssets']) > their_minimum:
+                            decline = True
+                    if uaid in blacklisted_traders:
+                        decline = True
+                    if decline_projected == True:
+                        if me >= them and me_proj == False:
+                            decline = True
+
+                    if decline == True:
                         while True:
                             r = req.post('https://auth.roblox.com/v1/logout')
                             csrf = r.headers['X-CSRF-TOKEN']
@@ -110,9 +140,13 @@ def check(inbounds):
                                 time.sleep(60)
                                 continue
                         break
-                    elif them > me and projected == False and not uaid in blacklisted:
+
+                    elif decline == False:
+                        if me_proj == True:
+                            print(f'{Fore.WHITE}[{Fore.LIGHTGREEN_EX}+{Fore.WHITE}] {Fore.LIGHTGREEN_EX}Giving Projected Trade Found {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{trade} {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{me} {Fore.WHITE}for {Fore.LIGHTGREEN_EX}{them}')
+                        elif me_proj == False:
+                            print(f'{Fore.WHITE}[{Fore.LIGHTGREEN_EX}+{Fore.WHITE}] {Fore.LIGHTGREEN_EX}Good Trade Found {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{trade} {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{me} {Fore.WHITE}for {Fore.LIGHTGREEN_EX}{them}')
                         good += 1
-                        print(f'{Fore.WHITE}[{Fore.LIGHTGREEN_EX}+{Fore.WHITE}] {Fore.LIGHTGREEN_EX}Good Trade Found {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{trade} {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{me} {Fore.WHITE}for {Fore.LIGHTGREEN_EX}{them}')
                         break
                 else:
                     print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
