@@ -94,7 +94,7 @@ def check(inbounds):
                         id = str(r['offers'][0]['userAssets'][i]['assetId'])
                         current, name, proj = values[id].split('/',3)
                         me += int(current)
-                        if id in blacklisted_giving:
+                        if int(id) in blacklisted_giving:
                             decline = True
                         if keep_giving_projected == False:
                             if str(proj) == '1':
@@ -104,7 +104,7 @@ def check(inbounds):
                         id = str(r['offers'][1]['userAssets'][i]['assetId'])
                         current, name, proj = values[id].split('/',3)
                         them += int(current)
-                        if id in blacklisted_receiving:
+                        if int(id) in blacklisted_receiving:
                             decline = True
                         if decline_projected == True:
                             if str(proj) == '1':
