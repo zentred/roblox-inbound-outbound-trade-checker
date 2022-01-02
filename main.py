@@ -18,6 +18,7 @@ keep_giving_projected = config['keep_giving_projected']
 blacklisted_traders = config['blacklisted_traders']
 blacklisted_giving = config['blacklisted_giving']
 blacklisted_receiving = config['blacklisted_receiving']
+trade_mode = config['trade_type']
 req.cookies['.ROBLOSECURITY'] = cookie
 
 trades = 0
@@ -54,7 +55,7 @@ def scrape_trades():
     tradeids = []
     while True:
         try:
-            r = req.get(f'https://trades.roblox.com/v1/trades/inbound?cursor={cursor}&limit=100&sortOrder=Desc').json()
+            r = req.get(f'https://trades.roblox.com/v1/trades/{trade_mode}?cursor={cursor}&limit=100&sortOrder=Desc').json()
             if 'nextPageCursor' in str(r):
                 cursor = r['nextPageCursor']
                 if not cursor == None:
