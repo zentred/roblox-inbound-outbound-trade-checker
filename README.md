@@ -15,4 +15,4 @@ proxyless, single threaded since there is roblox ratelimit which using proxies d
 
 
 
-![alt text](https://i.vgy.me/pc814s.png)
+![alt text](https://i.vgy.me/mEJ1mQ.png)
