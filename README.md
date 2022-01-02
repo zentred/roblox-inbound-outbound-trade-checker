@@ -10,7 +10,7 @@ requests
 
 
 
-proxyless, single threaded since there is roblox ratelimit which using proxies doesn't change
+proxyless, single threaded - 100 trades checked/declined every 3 minutes - using proxies doesnt bypass ratelimit so i didn't 
 
 
 
