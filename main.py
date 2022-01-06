@@ -90,8 +90,8 @@ def check(inbounds):
             me_proj = False
             while True:
                 r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
-                trade_identifier = r['id']
                 if 'userAssets' in str(r):
+                    trade_identifier = r['id']
                     me_hook = []
                     them_hook = []
                     themvalues_hook = []
