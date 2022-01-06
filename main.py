@@ -82,6 +82,7 @@ def scrape_trades():
 def check(inbounds):
     global good, bad, blacklisted
     for trade in inbounds:
+        dont = open('dontsend.txt','r').read()
         try:
             me = 0
             them = 0
@@ -89,6 +90,7 @@ def check(inbounds):
             me_proj = False
             while True:
                 r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
+                trade_identifier = r['id']
                 if 'userAssets' in str(r):
                     me_hook = []
                     them_hook = []
@@ -101,26 +103,28 @@ def check(inbounds):
                         current, name, proj = values[id].split('/',3)
                         me += int(current)
                         crn = "{:,}".format(int(current))
-                        me_hook.append(f'{i+1}) {name}')
-                        mevalues_hook.append(f'{i+1}) {crn}')
+                        me_hook.append(f'**Item**: {name}\n**Value**: {crn}\n')
                         if int(id) in blacklisted_giving:
                             decline = True
                         if keep_giving_projected == False:
                             if str(proj) == '1':
                                 me_proj = True
+                    myrobux = r['offers'][0]['robux']
+                    me_hook.append(f'**Robux**: {myrobux}\n')
 
                     for i in range(len(r['offers'][1]['userAssets'])):
                         id = str(r['offers'][1]['userAssets'][i]['assetId'])
                         current, name, proj = values[id].split('/',3)
                         them += int(current)
                         crn = "{:,}".format(int(current))
-                        them_hook.append(f'{i+1}) {name}')
-                        themvalues_hook.append(f'{i+1}) {crn}')
+                        them_hook.append(f'**Item**: {name}\n**Value**: {crn}\n')
                         if int(id) in blacklisted_receiving:
                             decline = True
                         if decline_projected == True:
                             if str(proj) == '1':
                                 decline = True
+                    theirrobux = r['offers'][1]['robux']
+                    them_hook.append(f'**Robux**: {theirrobux}\n')
 
                     if use_minimum == True:
                         if len(r['offers'][1]['userAssets']) > their_minimum:
@@ -157,12 +161,15 @@ def check(inbounds):
                         break
 
                     elif decline == False:
-                        me = "{:,}".format(int(me))
-                        them = "{:,}".format(int(them))
                         me_hook = '\n'.join(me_hook)
                         them_hook = '\n'.join(them_hook)
-                        mevalues_hook = '\n'.join(mevalues_hook)
-                        themvalues_hook = '\n'.join(themvalues_hook)
+
+                        profit = int(them) - int(me)
+                        percentage = (1 - int(me) / int(them)) * 100
+                        if '.' in str(percentage):
+                            if len(str(percentage).split('.')[1]) >= 3:
+                                percentage = round(percentage, 2)
+
                         if me_proj == True:
                             print(f'{Fore.WHITE}[{Fore.LIGHTGREEN_EX}+{Fore.WHITE}] {Fore.LIGHTGREEN_EX}Giving Projected Trade Found {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{trade} {Fore.WHITE}- {Fore.LIGHTGREEN_EX}{me} {Fore.WHITE}for {Fore.LIGHTGREEN_EX}{them}')
                         elif me_proj == False:
@@ -173,16 +180,17 @@ def check(inbounds):
                                 'embeds':[{
                                     'color': int('880808',16),
                                     'fields': [
-                                        {'name': f'📤 Giving Items [{me}]','value': f'```{me_hook}```','inline':True},
-                                        {'name': '💸 Values','value': f'```\n{mevalues_hook}```','inline':True},
-                                        {'name': '\u200b','value': f'\u200b','inline':True},
-                                        {'name': f'📥 Receiving Items: [{them}]','value': f'```{them_hook}```','inline':True},
-                                        {'name': '💸 Values','value': f'```\n{themvalues_hook}```','inline':True},
-                                        {'name': '\u200b','value': f'\u200b','inline':True},
+                                        {'name': f'📤 __**Giving**__ [{me}]','value': f'{me_hook}','inline':True},
+                                        {'name': f'\u200b','value': f'\u200b','inline':True},
+                                        {'name': f'📥 Receiving Items: [{them}]','value': f'{them_hook}','inline':True},
+                                        {'name': '💸 Profit','value': f'{profit} ({percentage}%)','inline':False},
                                         ]
                                     }]
                                 }
-                            requests.post(webhook, json=data)
+                            if not f'{trade_identifier}' in dont:
+                                requests.post(webhook, json=data)
+                                with open('dontsend.txt','a') as p:
+                                    p.writelines(f'{trade_identifier}\n')
                         break
                 else:
                     print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
