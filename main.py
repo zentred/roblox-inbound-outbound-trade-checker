@@ -180,7 +180,7 @@ def check(inbounds):
                                 'embeds':[{
                                     'color': int('880808',16),
                                     'fields': [
-                                        {'name': f'📤 __**Giving**__ [{me}]','value': f'{me_hook}','inline':True},
+                                        {'name': f'📤 Giving [{me}]','value': f'{me_hook}','inline':True},
                                         {'name': f'\u200b','value': f'\u200b','inline':True},
                                         {'name': f'📥 Receiving Items: [{them}]','value': f'{them_hook}','inline':True},
                                         {'name': '💸 Profit','value': f'{profit} ({percentage}%)','inline':False},
