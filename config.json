@@ -2,7 +2,8 @@
   "information": {
     "cookie": "cookie here",
     "webhook": "webhook here",
-    "minimum_win_for_webhook": 0
+    "minimum_win_for_webhook": 0,
+    "loop": false
   },
   "trade_information": {
     "type": "inbound",
