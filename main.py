@@ -8,7 +8,7 @@ os.system('cls')
 
 with open("config.json", "r") as config:
     config = json.load(config)
-with open('checked.txt', 'w') as f:
+with open('checked.txt', 'a') as f:
     f.close()
 
 webhook = config['information']['webhook']
