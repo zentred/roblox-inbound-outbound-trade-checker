@@ -14,6 +14,7 @@ with open('checked.txt', 'a') as f:
 webhook = config['information']['webhook']
 cookie = config['information']['cookie']
 minimum_rap_for_webhook = config['information']['minimum_win_for_webhook']
+loop = config['information']['loop']
 
 trade_mode = config['trade_information']['type']
 sort_by = config['trade_information']['sort']
@@ -207,15 +208,24 @@ def check(inbounds):
         except Exception as err:
             print(f'{Fore.LIGHTBLACK_EX}[-] Exception - {err}')
             continue
-
+    return None
 
 Thread(target=title).start()
 
-values = rolimons()
-inbounds = scrape_trades()
-
-if sort_by == 'ascending':
-    inbounds = inbounds[::-1]
-    check(inbounds)
-elif sort_by == 'descending':
-    check(inbounds)
+if loop == True:
+    while True:
+        values = rolimons()
+        inbounds = scrape_trades()
+        if sort_by == 'ascending':
+            inbounds = inbounds[::-1]
+            check(inbounds)
+        elif sort_by == 'descending':
+            check(inbounds)
+else:
+    values = rolimons()
+    inbounds = scrape_trades()
+    if sort_by == 'ascending':
+        inbounds = inbounds[::-1]
+        check(inbounds)
+    elif sort_by == 'descending':
+        check(inbounds)
