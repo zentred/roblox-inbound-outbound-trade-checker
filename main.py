@@ -128,7 +128,7 @@ def check(inbounds):
 
                         if len(r['offers'][1]['userAssets']) < their_minimum:
                             decline = True
-                        if len(r['offers'][0]['userAssets']) < their_minimum:
+                        if len(r['offers'][0]['userAssets']) < my_minimum:
                             decline = True
                         if uaid in blacklisted_traders:
                             decline = True
