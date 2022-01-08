@@ -87,10 +87,9 @@ def check(inbounds):
         try:
             me, them, decline, me_proj = 0, 0, False, False
             while True:
-                r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
-                if 'userAssets' in str(r):
-                    trade_identifier = r['id']
-                    if not f'{trade_identifier}' in dont:
+                if not str(trade) in dont:
+                    r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
+                    if 'userAssets' in str(r):
                         me_hook = []
                         them_hook = []
                         themvalues_hook = []
@@ -157,7 +156,7 @@ def check(inbounds):
                                     time.sleep(60)
                                     continue
                             with open('checked.txt','a') as p:
-                                p.writelines(f'{trade_identifier}\n')
+                                p.writelines(f'{trade}\n')
                             break
 
                         elif decline == False:
@@ -190,15 +189,15 @@ def check(inbounds):
                                 if int(them - me) >= minimum_rap_for_webhook:
                                     requests.post(webhook, json=data)
                             with open('checked.txt','a') as p:
-                                p.writelines(f'{trade_identifier}\n')
+                                p.writelines(f'{trade}\n')
                             break
                     else:
-                        skipped += 1
-                        break
+                        print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
+                        time.sleep(60)
+                        continue
                 else:
-                    print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
-                    time.sleep(60)
-                    continue
+                    skipped += 1
+                    break
             else:
                 print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
                 time.sleep(60)
