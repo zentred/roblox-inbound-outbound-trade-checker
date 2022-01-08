@@ -18,6 +18,7 @@ loop = config['information']['loop']
 
 trade_mode = config['trade_information']['type']
 sort_by = config['trade_information']['sort']
+minimum_value = config['trade_information']['minimum_value']
 
 my_minimum = config['trade_information']['my_offer']['minimum_items']
 their_minimum = config['trade_information']['their_offer']['minimum_items']
@@ -93,52 +94,37 @@ def check(inbounds):
                 if not str(trade) in dont:
                     r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
                     if 'userAssets' in str(r):
-                        me_hook = []
-                        them_hook = []
-                        themvalues_hook = []
-                        mevalues_hook = []
-                        uaid = str(r['offers'][1]['user']['id'])
+                        me_hook, them_hook, themvalues_hook, mevalues_hook = [], [], [], []
+
+                        myrobux, theirrobux = r['offers'][0]['robux'], r['offers'][1]['robux']
+                        me_hook.append(f'**Robux**: {myrobux}\n')
+                        them_hook.append(f'**Robux**: {theirrobux}\n')
 
                         for i in range(len(r['offers'][0]['userAssets'])):
                             id = str(r['offers'][0]['userAssets'][i]['assetId'])
                             current, name, proj = values[id].split('/',3)
+                            me_hook.append(f'**Item**: {name}\n**Value**: {"{:,}".format(int(current))}\n')
                             me += int(current)
-                            crn = "{:,}".format(int(current))
-                            me_hook.append(f'**Item**: {name}\n**Value**: {crn}\n')
-                            if int(id) in blacklisted_giving:
-                                decline = True
-                            if keep_giving_projected == False:
-                                if str(proj) == '1':
-                                    me_proj = True
-                        myrobux = r['offers'][0]['robux']
-                        me_hook.append(f'**Robux**: {myrobux}\n')
+
+                            if int(id) in blacklisted_giving or keep_giving_projected == False: decline = True
 
                         for i in range(len(r['offers'][1]['userAssets'])):
                             id = str(r['offers'][1]['userAssets'][i]['assetId'])
                             current, name, proj = values[id].split('/',3)
+                            them_hook.append(f'**Item**: {name}\n**Value**: {"{:,}".format(int(current))}\n')
                             them += int(current)
-                            crn = "{:,}".format(int(current))
-                            them_hook.append(f'**Item**: {name}\n**Value**: {crn}\n')
-                            if int(id) in blacklisted_receiving:
-                                decline = True
-                            if decline_projected == True:
-                                if str(proj) == '1':
-                                    decline = True
-                        theirrobux = r['offers'][1]['robux']
-                        them_hook.append(f'**Robux**: {theirrobux}\n')
 
-                        if len(r['offers'][1]['userAssets']) < their_minimum:
-                            decline = True
-                        if len(r['offers'][0]['userAssets']) < my_minimum:
-                            decline = True
-                        if uaid in blacklisted_traders:
-                            decline = True
+                            if int(id) in blacklisted_receiving: decline = True
+                            if decline_projected == True and str(proj) == '1': decline = True
+
+                        if len(r['offers'][1]['userAssets']) < their_minimum: decline = True
+                        if len(r['offers'][0]['userAssets']) < my_minimum: decline = True
+                        if str(r['offers'][1]['user']['id']) in blacklisted_traders: decline = True
                         if keep_giving_projected == True:
-                            if me >= them and me_proj == False:
-                                decline = True
+                            if me >= them and me_proj == False: decline = True
                         elif keep_giving_projected == False:
-                            if me >= them:
-                                decline = True
+                            if me >= them: decline = True
+                        if me < minimum_value or them < minimum_value: decline = True
 
                         if decline == True:
                             while True:
@@ -163,11 +149,9 @@ def check(inbounds):
                             break
 
                         elif decline == False:
-                            me_hook = '\n'.join(me_hook)
-                            them_hook = '\n'.join(them_hook)
+                            me_hook, them_hook = '\n'.join(me_hook), '\n'.join(them_hook)
+                            profit, percentage = int(them) - int(me), (1 - int(me) / int(them)) * 100
 
-                            profit = int(them) - int(me)
-                            percentage = (1 - int(me) / int(them)) * 100
                             if '.' in str(percentage):
                                 if len(str(percentage).split('.')[1]) >= 3:
                                     percentage = round(percentage, 2)
