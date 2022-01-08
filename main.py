@@ -8,6 +8,8 @@ os.system('cls')
 
 with open("config.json", "r") as config:
     config = json.load(config)
+with open('checked.txt', 'w') as f:
+    f.close()
 
 webhook = config['information']['webhook']
 cookie = config['information']['cookie']
@@ -124,9 +126,9 @@ def check(inbounds):
                         theirrobux = r['offers'][1]['robux']
                         them_hook.append(f'**Robux**: {theirrobux}\n')
 
-                        if len(r['offers'][1]['userAssets']) > their_minimum:
+                        if len(r['offers'][1]['userAssets']) < their_minimum:
                             decline = True
-                        if len(r['offers'][0]['userAssets']) > their_minimum:
+                        if len(r['offers'][0]['userAssets']) < their_minimum:
                             decline = True
                         if uaid in blacklisted_traders:
                             decline = True
