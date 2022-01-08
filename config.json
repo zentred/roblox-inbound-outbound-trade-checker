@@ -1,13 +1,22 @@
 {
-  "cookie": "put cookie here",
-  "webhook": "webhook here",
-  "trade_type": "outbound",
-  "use_minimum_items": false,
-  "minimum_items_my_side": 4,
-  "minimum_items_their_side": 4,
-  "decline_receive_projected": true,
-  "keep_giving_projected": true,
-  "blacklisted_traders": [123, 123],
-  "blacklisted_giving": [123, 123],
-  "blacklisted_receiving": [123, 123]
+  "information": {
+    "cookie": "cookie here",
+    "webhook": "webhook here",
+    "minimum_win_for_webhook": 0
+  },
+  "trade_information": {
+    "type": "inbound",
+    "sort": "descending",
+    "blacklisted_users": [123, 456],
+    "my_offer": {
+      "minimum_items": 4,
+      "decline_projected": false,
+      "blacklisted_items": [123, 456]
+    },
+    "their_offer": {
+      "minimum_items": 4,
+      "decline_projected": true,
+      "blacklisted_items": [123, 456]
+    }
+  }
 }
