@@ -8,6 +8,7 @@
   "trade_information": {
     "type": "inbound",
     "sort": "descending",
+    "minimum_value": 0,
     "blacklisted_users": [123, 456],
     "my_offer": {
       "minimum_items": 4,
