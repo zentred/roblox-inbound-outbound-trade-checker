@@ -84,12 +84,29 @@ def scrape_trades():
             print(f'{Fore.LIGHTBLACK_EX}[-] Exception - {err}')
             continue
 
+def check_decline(my_length, their_length, receiving_userid, me, them, me_proj):
+    decline = None
+    if their_length < their_minimum: decline = True
+    if my_length < my_minimum: decline = True
+    if receiving_userid in blacklisted_traders: decline = True
+    if me < minimum_value or them < minimum_value: decline = True
+    if keep_giving_projected == True:
+        if me >= them and me_proj == False:
+            decline = True
+    elif keep_giving_projected == False:
+        if me >= them:
+            decline = True
+    if decline == True:
+        return 1
+    elif decline == None:
+        return 0
+
 def check(inbounds):
     global good, bad, blacklisted, skipped
     for trade in inbounds:
         dont = open('checked.txt','r').read()
         try:
-            me, them, decline, me_proj = 0, 0, False, False
+            me, them, decline, me_proj = 0, 0, 0, False
             while True:
                 if not str(trade) in dont:
                     r = req.get(f'https://trades.roblox.com/v1/trades/{trade}').json()
@@ -97,8 +114,8 @@ def check(inbounds):
                         me_hook, them_hook, themvalues_hook, mevalues_hook = [], [], [], []
 
                         myrobux, theirrobux = r['offers'][0]['robux'], r['offers'][1]['robux']
-                        me_hook.append(f'**Robux**: {myrobux}\n')
-                        them_hook.append(f'**Robux**: {theirrobux}\n')
+                        me_hook.append(f'\u200b\n**Robux**: {myrobux}\n')
+                        them_hook.append(f'\u200b\n**Robux**: {theirrobux}\n')
 
                         for i in range(len(r['offers'][0]['userAssets'])):
                             id = str(r['offers'][0]['userAssets'][i]['assetId'])
@@ -106,7 +123,8 @@ def check(inbounds):
                             me_hook.append(f'**Item**: {name}\n**Value**: {"{:,}".format(int(current))}\n')
                             me += int(current)
 
-                            if int(id) in blacklisted_giving or keep_giving_projected == False: decline = True
+                            if int(id) in blacklisted_giving or keep_giving_projected == False:
+                                decline += 1
 
                         for i in range(len(r['offers'][1]['userAssets'])):
                             id = str(r['offers'][1]['userAssets'][i]['assetId'])
@@ -114,19 +132,15 @@ def check(inbounds):
                             them_hook.append(f'**Item**: {name}\n**Value**: {"{:,}".format(int(current))}\n')
                             them += int(current)
 
-                            if int(id) in blacklisted_receiving: decline = True
-                            if decline_projected == True and str(proj) == '1': decline = True
+                            if int(id) in blacklisted_receiving:
+                                decline += 1
+                            if decline_projected == True and str(proj) == '1':
+                                decline += 1
 
-                        if len(r['offers'][1]['userAssets']) < their_minimum: decline = True
-                        if len(r['offers'][0]['userAssets']) < my_minimum: decline = True
-                        if str(r['offers'][1]['user']['id']) in blacklisted_traders: decline = True
-                        if keep_giving_projected == True:
-                            if me >= them and me_proj == False: decline = True
-                        elif keep_giving_projected == False:
-                            if me >= them: decline = True
-                        if me < minimum_value or them < minimum_value: decline = True
+                        numb = check_decline(len(r['offers'][0]['userAssets']), len(r['offers'][1]['userAssets']), str(r['offers'][1]['user']['id']), me, them, me_proj)
+                        decline += numb
 
-                        if decline == True:
+                        if decline >= 1:
                             while True:
                                 r = req.post('https://auth.roblox.com/v1/logout')
                                 csrf = r.headers['X-CSRF-TOKEN']
@@ -144,11 +158,9 @@ def check(inbounds):
                                     print(f'{Fore.WHITE}[{Fore.YELLOW}-{Fore.WHITE}]{Fore.YELLOW} Ratelimited {Fore.WHITE}- {Fore.YELLOW}Waiting {Fore.WHITE}1 {Fore.YELLOW}minute')
                                     time.sleep(60)
                                     continue
-                            with open('checked.txt','a') as p:
-                                p.writelines(f'{trade}\n')
                             break
 
-                        elif decline == False:
+                        elif decline == 0:
                             me_hook, them_hook = '\n'.join(me_hook), '\n'.join(them_hook)
                             profit, percentage = int(them) - int(me), (1 - int(me) / int(them)) * 100
 
