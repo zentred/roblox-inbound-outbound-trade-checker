@@ -13,12 +13,12 @@ with open('checked.txt', 'a') as f:
 
 webhook = config['information']['webhook']
 cookie = config['information']['cookie']
-minimum_rap_for_webhook = config['information']['minimum_win_for_webhook']
 loop = config['information']['loop']
 
 trade_mode = config['trade_information']['type']
 sort_by = config['trade_information']['sort']
 minimum_value = config['trade_information']['minimum_value']
+minimum_profit = config['trade_information']['minimum_profit']
 
 my_minimum = config['trade_information']['my_offer']['minimum_items']
 their_minimum = config['trade_information']['their_offer']['minimum_items']
@@ -137,8 +137,16 @@ def check(inbounds):
                             if decline_projected == True and str(proj) == '1':
                                 decline += 1
 
+                        their_username = r['offers'][1]['user']['name']
+                        their_id = r['offers'][1]['user']['id']
+
                         numb = check_decline(len(r['offers'][0]['userAssets']), len(r['offers'][1]['userAssets']), str(r['offers'][1]['user']['id']), me, them, me_proj)
                         decline += numb
+
+                        me_hook, them_hook = '\n'.join(me_hook), '\n'.join(them_hook)
+                        profit, percentage = int(them) - int(me), (1 - int(me) / int(them)) * 100
+                        if profit < minimum_profit:
+                            decline += 1
 
                         if decline >= 1:
                             while True:
@@ -161,9 +169,6 @@ def check(inbounds):
                             break
 
                         elif decline == 0:
-                            me_hook, them_hook = '\n'.join(me_hook), '\n'.join(them_hook)
-                            profit, percentage = int(them) - int(me), (1 - int(me) / int(them)) * 100
-
                             if '.' in str(percentage):
                                 if len(str(percentage).split('.')[1]) >= 3:
                                     percentage = round(percentage, 2)
@@ -175,18 +180,24 @@ def check(inbounds):
                             good += 1
                             if trade_mode == 'inbound':
                                 data = {
-                                    'embeds':[{
-                                        'color': int('880808',16),
-                                        'fields': [
-                                            {'name': f'📤 Giving [{me}]','value': f'{me_hook}','inline':True},
-                                            {'name': f'\u200b','value': f'\u200b','inline':True},
-                                            {'name': f'📥 Receiving Items: [{them}]','value': f'{them_hook}','inline':True},
-                                            {'name': '💸 Profit','value': f'{profit} ({percentage}%)','inline':False},
-                                            ]
-                                        }]
-                                    }
-                                if int(them - me) >= minimum_rap_for_webhook:
-                                    requests.post(webhook, json=data)
+                                  'embeds':[{
+                                      'author': {
+                                          'name': f'Trade from {their_username} (click for rolimons)\n\u200b',
+                                          'url': f'https://www.rolimons.com/player/{str(their_id)}'
+                                          },
+                                      'color': int('00CCFF',16),
+                                      'fields': [
+                                          {'name': f'📤 Giving [{me}]','value': f'{me_hook}','inline':True},
+                                          {'name': f'\u200b','value': f'\u200b','inline':True},
+                                          {'name': f'📥 Receiving Items: [{them}]','value': f'{them_hook}','inline':True},
+                                          {'name': '💸 Profit','value': f'{profit} ({percentage}%)','inline':False},
+                                      ],
+                                      'thumbnail': {
+                                          'url': f'http://www.roblox.com/Thumbs/Avatar.ashx?x=200&y=200&Format=Png&username={their_username}',
+                                          }
+                                    }]
+                                }
+                                requests.post(webhook, json=data)
                             with open('checked.txt','a') as p:
                                 p.writelines(f'{trade}\n')
                             break
