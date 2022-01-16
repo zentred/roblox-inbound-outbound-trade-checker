@@ -11,12 +11,12 @@
     "minimum_profit": 1,
     "blacklisted_users": [123, 456],
     "my_offer": {
-      "minimum_items": 4,
+      "minimum_items": 1,
       "decline_projected": false,
       "blacklisted_items": [123, 456]
     },
     "their_offer": {
-      "minimum_items": 4,
+      "minimum_items": 1,
       "decline_projected": true,
       "blacklisted_items": [123, 456]
     }
