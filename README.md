@@ -1,3 +1,11 @@
+THIS HAS SOME ISSUES! sometimes roblox ratelimits for longer than the 1 minute so it gets stuck in ratelimit loop
+if this happened just restart, the trades are cached so it's fine
+
+
+
+
+
+
 requires python 3+
 
 
