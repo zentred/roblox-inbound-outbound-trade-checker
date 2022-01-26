@@ -15,19 +15,20 @@ webhook = config['information']['webhook']
 cookie = config['information']['cookie']
 loop = config['information']['loop']
 
-trade_mode = config['trade_information']['type']
-sort_by = config['trade_information']['sort']
-minimum_value = config['trade_information']['minimum_value']
-minimum_profit = config['trade_information']['minimum_profit']
+trade_mode = config['config']['info']['tradeType'] # outbound/inbound
+sort_by = config['config']['info']['tradeSort'] # ascending/descending
+minimum_value = config['config']['info']['minimumValue']
+minimum_profit = config['config']['info']['minimumProfit']
 
-my_minimum = config['trade_information']['my_offer']['minimum_items']
-their_minimum = config['trade_information']['their_offer']['minimum_items']
-decline_projected = config['trade_information']['my_offer']['decline_projected']
-keep_giving_projected = config['trade_information']['their_offer']['decline_projected']
+my_minimum = config['config']['giving']['minimumItems']
+their_minimum = config['config']['receiving']['minimumItems']
+decline_projected = config['config']['giving']['declineProjected']
+keep_giving_projected = config['config']['receiving']['declineProjected']
 
-blacklisted_traders = config['trade_information']['blacklisted_users']
-blacklisted_giving = config['trade_information']['my_offer']['blacklisted_items']
-blacklisted_receiving = config['trade_information']['their_offer']['blacklisted_items']
+blacklisted_traders = config['config']['info']['blacklistedUsers']
+blacklisted_giving = config['config']['giving']['declineItems']
+blacklisted_receiving = config['config']['receiving']['declineItems']
+selling_under_rap = config['config']['receiving']['declineSellingUnderRap']
 
 req.cookies['.ROBLOSECURITY'] = cookie
 
@@ -46,13 +47,13 @@ def rolimons():
     for x in total:
         info = total[x]
         if info[5] == None:
-            name, use, projected, itemid = info[0], info[2], info[4], x
+            name, use, projected, itemid, price = info[0], info[2], info[4], x, info[1]
             ids.append(itemid)
-            information.append(f'{use}/{name}/{projected}')
+            information.append(f'{use}/{name}/{projected}/{price}/{use}')
         elif info[5] != None:
-            name, use, projected, itemid = info[0], info[5], info[4], x
+            name, use, projected, itemid, price, realrap = info[0], info[5], info[4], x, info[1], info[2]
             ids.append(itemid)
-            information.append(f'{use}/{name}/{projected}')
+            information.append(f'{use}/{name}/{projected}/{price}/{realrap}')
     c = zip(ids, information)
     values = dict(c)
     return values
@@ -119,7 +120,7 @@ def check(inbounds):
 
                         for i in range(len(r['offers'][0]['userAssets'])):
                             id = str(r['offers'][0]['userAssets'][i]['assetId'])
-                            current, name, proj = values[id].split('/',3)
+                            current, name, proj, pric, realrap = values[id].split('/',5)
                             me_hook.append(f'**Item**: {name}\n**Value**: {"{:,}".format(int(current))}\n')
                             me += int(current)
 
@@ -128,7 +129,7 @@ def check(inbounds):
 
                         for i in range(len(r['offers'][1]['userAssets'])):
                             id = str(r['offers'][1]['userAssets'][i]['assetId'])
-                            current, name, proj = values[id].split('/',3)
+                            current, name, proj, pric, realrap = values[id].split('/',5)
                             them_hook.append(f'**Item**: {name}\n**Value**: {"{:,}".format(int(current))}\n')
                             them += int(current)
 
@@ -136,6 +137,9 @@ def check(inbounds):
                                 decline += 1
                             if decline_projected == True and str(proj) == '1':
                                 decline += 1
+                            if selling_under_rap == True:
+                                if int(pric) < int(realrap):
+                                    decline += 1
 
                         their_username = r['offers'][1]['user']['name']
                         their_id = r['offers'][1]['user']['id']
@@ -194,7 +198,10 @@ def check(inbounds):
                                       ],
                                       'thumbnail': {
                                           'url': f'http://www.roblox.com/Thumbs/Avatar.ashx?x=200&y=200&Format=Png&username={their_username}',
-                                          }
+                                          },
+                                      'footer': {
+                                          'text': f'Trade ID: {trade}'
+                                      }
                                     }]
                                 }
                                 requests.post(webhook, json=data)
