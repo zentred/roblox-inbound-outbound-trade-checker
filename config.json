@@ -4,21 +4,24 @@
     "webhook": "webhook here",
     "loop": false
   },
-  "trade_information": {
-    "type": "inbound",
-    "sort": "descending",
-    "minimum_value": 0,
-    "minimum_profit": 1,
-    "blacklisted_users": [123, 456],
-    "my_offer": {
-      "minimum_items": 1,
-      "decline_projected": false,
-      "blacklisted_items": [123, 456]
+  "config": {
+    "info": {
+      "tradeType": "inbound",
+      "tradeSort": "descending",
+      "minimumValue": 0,
+      "minimumProfit": 100,
+      "blacklistedUsers": [10000, 10000]
     },
-    "their_offer": {
-      "minimum_items": 1,
-      "decline_projected": true,
-      "blacklisted_items": [123, 456]
+    "giving": {
+      "minimumItems": 1,
+      "declineProjected": false,
+      "declineItems": [10000, 10000]
+    },
+    "receiving": {
+      "minimumItems": 1,
+      "declineProjected": true,
+      "declineItems": [10000, 10000],
+      "declineSellingUnderRap": true
     }
   }
 }
